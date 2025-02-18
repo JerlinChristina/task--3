@@ -1,0 +1,110 @@
+pip install opencv-python opencv-python-headless dlib tensorflow torch torchvision
+import cv2
+
+# Load the pre-trained Haar Cascade for face detection
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Load the image or video stream
+image = cv2.imread('image.jpg')
+
+# Convert the image to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Detect faces in the image
+faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+
+# Draw rectangles around the faces
+for (x, y, w, h) in faces:
+    cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+# Show the image
+cv2.imshow('Detected Faces', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+import dlib
+import cv2
+
+# Load the pre-trained face detector from Dlib
+detector = dlib.get_frontal_face_detector()
+
+# Load the image
+image = cv2.imread('image.jpg')
+
+# Convert the image to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Detect faces
+faces = detector(gray)
+
+# Draw rectangles around the faces
+for face in faces:
+    x, y, w, h = (face.left(), face.top(), face.width(), face.height())
+    cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+# Show the image
+cv2.imshow('Detected Faces', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+pip install deepface
+from deepface import DeepFace
+
+# Perform face recognition between two images
+result = DeepFace.verify('image1.jpg', 'image2.jpg')
+
+print("Are the faces the same? ", result["verified"])
+pip install insightface
+import insightface
+import cv2
+
+# Load the pre-trained ArcFace model
+model = insightface.app.FaceAnalysis()
+model.prepare(ctx_id=0)  # For GPU, set ctx_id=0
+
+# Load an image
+image = cv2.imread('image.jpg')
+
+# Detect and recognize faces
+faces = model.get(image)
+
+# Print recognized faces
+for face in faces:
+    print(f"Detected face with embedding: {face.embedding}")
+import cv2
+from deepface import DeepFace
+import dlib
+
+# Initialize face detector and recognizer
+face_detector = dlib.get_frontal_face_detector()
+
+# Load the video stream or image
+cap = cv2.VideoCapture(0)  # For webcam video
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_detector(gray)
+
+    for face in faces:
+        x, y, w, h = (face.left(), face.top(), face.width(), face.height())
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        # Crop the detected face
+        face_img = frame[y:y+h, x:x+w]
+
+        # Use DeepFace to recognize the face
+        result = DeepFace.analyze(face_img, actions=['age', 'gender', 'emotion'])
+
+        # Annotate the frame with the results
+        cv2.putText(frame, f"Age: {result['age']}, Emotion: {result['dominant_emotion']}", 
+                    (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+    cv2.imshow('Face Detection and Recognition', frame)
+
+    # Exit the loop if the user presses 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
